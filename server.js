@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
 const knex = require("knex");
+const Clarifai = require("clarifai");
 
 const db = knex({
   client: "pg",
@@ -43,6 +44,10 @@ app.get("/", (req, res) => {
 });
 
 app.post("/signin", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json("Incorrect Form Submission");
+  }
   db.select("email", "hash")
     .from("login")
     .where("email", "=", req.body.email)
@@ -70,6 +75,9 @@ app.post("/signin", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, name, password } = req.body;
+  if (!email || !name || !password) {
+    return res.status(400).json("Incorrect Form Submission");
+  }
   const hash = bcrypt.hashSync(password, 10);
   db.transaction(trx => {
     trx
@@ -122,6 +130,19 @@ app.put("/image", (req, res) => {
       res.json(entries[0]);
     })
     .catch(err => res.status(400).json("Error"));
+});
+
+const apiCall = new Clarifai.App({
+  apiKey: "5024e64055f448a897f1f205314f8a5a"
+});
+
+app.post("/imageurl", (req, res) => {
+  apiCall.models
+    .predict(Clarifai.FACE_DETECT_MODEL, req.body.input)
+    .then(data => {
+      res.json(data);
+    })
+    .catch(err => res.status(400).json("unable to work with API"));
 });
 
 app.listen(3000, () => {
