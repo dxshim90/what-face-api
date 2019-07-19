@@ -2,6 +2,17 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
+const knex = require("knex");
+
+const db = knex({
+  client: "pg",
+  connection: {
+    host: "127.0.0.1",
+    user: "",
+    password: "",
+    database: "what--face"
+  }
+});
 
 const app = express();
 app.use(bodyParser.json());
@@ -43,22 +54,14 @@ app.post("/signin", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  let { name, email, password } = req.body;
-  const saltRounds = 10;
-  bcrypt.hash(password, saltRounds, function(err, hash) {
-    console.log(hash);
-  });
-
-  const newUser = {
-    id: "135",
-    name: req.body.name,
-    email: email,
-    password: password,
-    entries: 0,
-    joined: new Date()
-  };
-  database.users.push(newUser);
-  res.json(database.users[database.users.length - 1]);
+  const { name, email, password } = req.body;
+  db("users")
+    .insert({
+      email: email,
+      name: name,
+      joined: new Date()
+    })
+    .then(console.log);
 });
 
 app.get("/profile/:id", (req, res) => {
