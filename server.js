@@ -145,6 +145,6 @@ app.post("/imageurl", (req, res) => {
     .catch(err => res.status(400).json("unable to work with API"));
 });
 
-app.listen(3000, () => {
-  console.log("Server running");
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server running on ${process.env.PORT}`);
 });
